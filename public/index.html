@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Royal | Management Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .booking-panel {
+            background: #fff;
+            border: 1px solid #e4e6df;
+            border-top: 4px solid #c6a45b;
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 28px;
+            box-shadow: 0 8px 24px rgba(28,49,38,.07);
+        }
+
+        .booking-heading {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .booking-heading-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: #f6f0e2;
+            color: #987a3e;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .booking-heading h2 {
+            margin: 0 0 6px;
+            color: #204634;
+            font-size: 23px;
+        }
+
+        .booking-heading p {
+            margin: 0;
+            color: #7a817b;
+            font-size: 13px;
+        }
+
+        .booking-form {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            align-items: end;
+        }
+
+        .booking-field {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .booking-field label {
+            color: #37483e;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .booking-field input,
+        .booking-field select {
+            width: 100%;
+            height: 48px;
+            box-sizing: border-box;
+            padding: 0 12px;
+            border: 1px solid #dce1d9;
+            border-radius: 7px;
+            background: #fafbf9;
+            color: #263b30;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .booking-field input:focus,
+        .booking-field select:focus {
+            border-color: #b99b5c;
+            box-shadow: 0 0 0 3px rgba(198,164,91,.15);
+        }
+
+        .booking-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .booking-info {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        #availabilityMessage,
+        #reservationMessage {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        #availabilityMessage {
+            color: #737b74;
+        }
+
+        #reservationMessage {
+            margin-top: 5px;
+        }
+
+        #reservationMessage.success {
+            color: #207044;
+        }
+
+        #reservationMessage.error {
+            color: #b42318;
+        }
+
+        .booking-total {
+            display: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: #f5f2e9;
+            color: #314537;
+            min-width: 145px;
+        }
+
+        .booking-total span {
+            display: block;
+            font-size: 12px;
+            color: #72776e;
+        }
+
+        .booking-total strong {
+            display: block;
+            margin-top: 4px;
+            font-size: 20px;
+            color: #204634;
+        }
+
+        #bookRoomButton {
+            min-height: 48px;
+            padding: 0 25px;
+            border: none;
+            border-radius: 7px;
+            background: #204a37;
+            color: #fff;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        #bookRoomButton:not(:disabled):hover {
+            background: #163627;
+        }
+
+        #bookRoomButton:disabled {
+            background: #a6b1a9;
+            cursor: not-allowed;
+        }
+
+        .room-message {
+            color: #737b74;
+        }
+
+        #errorMessage {
+            color: #b42318;
+            margin-top: 12px;
+        }
+
+        .status.booked {
+            background: #c62828 !important;
+            color: white !important;
+        }
+
+        .status.available {
+            background: #23834b !important;
+            color: white !important;
+        }
+
+        /* Modal Styles for Future Room Bookings */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal[hidden] {
+            display: none !important;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e4e6df;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #204634;
+            font-size: 18px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7a817b;
+        }
+
+        .close-btn:hover {
+            color: #204634;
+        }
+
+        .modal-body table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .modal-body th, .modal-body td {
+            padding: 10px 12px;
+            border: 1px solid #e4e6df;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .modal-body th {
+            background: #f6f0e2;
+            color: #204634;
+        }
+
+        @media (max-width: 1050px) {
+            .booking-form {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .booking-panel {
+                padding: 20px 16px;
+            }
+
+            .booking-form {
+                grid-template-columns: 1fr;
+            }
+
+            .booking-bottom {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            #bookRoomButton {
+                width: 100%;
+            }
+        }
+
+        .reservation-search {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .reservation-search input,
+        .reservation-search select {
+            min-width: 0;
+            flex: 1;
+            height: 44px;
+            padding: 0 12px;
+            border: 1px solid #dce1d9;
+            border-radius: 7px;
+            background: #fafbf9;
+            color: #263b30;
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        .reservation-search button {
+            min-height: 44px;
+            padding: 0 16px;
+            border: none;
+            border-radius: 7px;
+            background: #204a37;
+            color: white;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .reservation-search button:hover {
+            background: #163627;
+        }
+
+        @media (max-width: 600px) {
+            .reservation-search {
+                flex-direction: column;
+            }
+
+            .reservation-search input,
+            .reservation-search select {
+                width: 100%;
+                box-sizing: border-box;
+                flex: auto;
+            }
+        }
+        
+        .receipt {
+            max-width: 700px;
+            margin: 25px auto;
+            padding: 25px;
+            background: #ffffff;
+            color: #222222;
+            border: 1px solid #dddddd;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .receipt-header h2 {
+            margin-bottom: 5px;
+        }
+
+        .receipt h3 {
+            margin-top: 22px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #dddddd;
+        }
+
+        .receipt p {
+            margin: 10px 0;
+        }
+
+        .receipt button {
+            margin-top: 20px;
+            padding: 10px 18px;
+            cursor: pointer;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #reservationReceipt,
+            #reservationReceipt * {
+                visibility: visible;
+            }
+
+            #reservationReceipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                max-width: none;
+                margin: 0;
+                border: none;
+                box-shadow: none;
+            }
+
+            #printReceiptButton {
+                display: none;
+            }
+        }
+        /* Custom Theme Styling for History Table Controls & Buttons */
+#historyList select {
+    background: #163627;
+    color: #fff;
+    border: 1px solid #2f5e49;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+    cursor: pointer;
+}
+
+#historyList select:focus {
+    border-color: #c6a45b;
+    box-shadow: 0 0 0 2px rgba(198, 164, 91, 0.2);
+}
+
+#historyList button {
+    background: #204a37;
+    color: #fff;
+    border: 1px solid #2f5e49;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    margin-right: 4px;
+}
+
+#historyList button:hover:not(:disabled) {
+    background: #163627;
+    border-color: #c6a45b;
+}
+
+#historyList button:disabled {
+    background: #2a3832;
+    color: #7a8680;
+    border-color: #33443c;
+    cursor: not-allowed;
+}
+
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <a class="brand" href="/" aria-label="Hotel Royal dashboard">
+            <span class="brand-crown">♛</span>
+            <span class="brand-name">HOTEL <span>ROYAL</span></span>
+            <span class="brand-subtitle">LUXURY STAYS</span>
+        </a>
+
+        <p class="menu-title">MAIN MENU</p>
+
+        <nav class="navigation">
+            <a class="active" href="#dashboard"><span>⌂</span> Dashboard</a>
+            <a href="#reservations"><span>▦</span> Reservations</a>
+            <a href="#rooms"><span>▣</span> Room Layout</a>
+            <a href="#customers"><span>♙</span> Customers</a>
+            <a href="#customer-history"><span>▤</span> Stay &amp; Payments</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <span>♧</span>
+            <p>Comfort · Luxury · Hospitality</p>
+        </div>
+    </aside>
+
+    <main class="main-content" id="dashboard">
+        <header class="topbar">
+            <div class="topbar-label">HOTEL MANAGEMENT SYSTEM</div>
+            <div class="topbar-right">
+                <span class="date-label">▦ <span id="today"></span></span>
+                <span class="admin-label">
+                    <span class="admin-avatar">♙</span> Hotel Admin
+                </span>
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="hero-content">
+                <p class="hero-eyebrow">WELCOME TO HOTEL ROYAL</p>
+                <h1>Your Hotel Management Dashboard</h1>
+                <p>Manage rooms, customers, reservations and payments all in one place.</p>
+                <a class="hero-link" href="#reservations">
+                    MAKE A RESERVATION <span>→</span>
+                </a>
+            </div>
+        </section>
+
+        <div class="content-area">
+            <section class="booking-panel" id="reservations">
+                <div class="booking-heading">
+                    <div class="booking-heading-icon">▦</div>
+                    <div>
+                        <h2>Create a Reservation</h2>
+                        <p>Enter guest details, select dates and choose a room.</p>
+                    </div>
+                </div>
+
+                <form id="reservationForm">
+                    <div class="booking-form">
+                        <div class="booking-field">
+                            <label for="customerName">Guest Name</label>
+                            <input type="text" id="customerName"
+                                   placeholder="Enter customer name"
+                                   maxlength="100" required>
+                        </div>
+
+                        <div class="booking-field">
+                            <label for="customerPhone">Phone Number</label>
+                            <input type="tel" id="customerPhone"
+                                   placeholder="Enter phone number"
+                                   maxlength="20" required>
+                        </div>
+
+                        <div class="booking-field">
+                            <label for="customerEmail">Email Address</label>
+                            <input type="email" id="customerEmail"
+                                   placeholder="Enter email address"
+                                   maxlength="150">
+                        </div>
+
+                        <div class="booking-field">
+                            <label for="checkInDate">Check-in</label>
+                            <input type="date" id="checkInDate" required>
+                        </div>
+
+                        <div class="booking-field">
+                            <label for="checkOutDate">Check-out</label>
+                            <input type="date" id="checkOutDate" required>
+                        </div>
+
+                        <div class="booking-field">
+                            <label for="bookingRoom">Available Room</label>
+                            <select id="bookingRoom" required disabled>
+                                <option value="">Select dates first</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="booking-bottom">
+                        <div class="booking-info">
+                            <p id="availabilityMessage" role="status" aria-live="polite">
+                                Select check-in and check-out dates.
+                            </p>
+                            <p id="reservationMessage" role="status" aria-live="polite"></p>
+                        </div>
+
+                        <div class="booking-total" id="bookingTotal">
+                            <span>Estimated Room Charge</span>
+                            <strong id="bookingTotalAmount">₹0</strong>
+                            <span id="bookingNights"></span>
+                        </div>
+
+                        <button type="submit" id="bookRoomButton" disabled>
+                            Confirm Reservation →
+                        </button>
+                    </div>
+                </form>
+                
+                <section id="reservationReceipt" class="receipt" hidden>
+                    <div class="receipt-header">
+                        <h2>HOTEL ROYAL</h2>
+                        <p>Reservation Confirmation Receipt</p>
+                        <span id="receiptBookingStatus">Booked</span>
+                    </div>
+
+                    <hr>
+
+                    <h3>Reservation Details</h3>
+                    <p>Reservation ID: <strong id="receiptReservationId">-</strong></p>
+                    <p>Reservation Status: <strong id="receiptReservationStatus">Booked</strong></p>
+
+                    <h3>Customer Details</h3>
+                    <p>Customer ID: <strong id="receiptCustomerId">-</strong></p>
+                    <p>Customer Name: <strong id="receiptCustomerName">-</strong></p>
+
+                    <h3>Room and Stay Details</h3>
+                    <p>Room ID: <strong id="receiptRoomId">-</strong></p>
+                    <p>Room Number: <strong id="receiptRoomNumber">-</strong></p>
+                    <p>Room Type: <strong id="receiptRoomType">-</strong></p>
+                    <p>Check-in: <strong id="receiptCheckIn">-</strong></p>
+                    <p>Check-out: <strong id="receiptCheckOut">-</strong></p>
+                    <p>Nights: <strong id="receiptNights">-</strong></p>
+                    <p>Rate per Night: <strong id="receiptRate">-</strong></p>
+                    <p>Total Booking Cost: <strong id="receiptTotal">-</strong></p>
+
+                    <h3>Payment Details</h3>
+                    <p>Payment ID: <strong id="receiptPaymentId">Not recorded</strong></p>
+                    <p>Payment Method: <strong id="receiptPaymentMethod">Not recorded</strong></p>
+                    <p>Amount Paid: <strong id="receiptAmountPaid">₹0.00</strong></p>
+                    <p>Payment Status: <strong id="receiptPaymentStatus">Not recorded</strong></p>
+
+                    <button type="button" id="printReceiptButton">
+                        Print Receipt
+                    </button>
+                </section>
+            </section>
+
+            <section class="summary-cards" aria-label="Hotel summary">
+                <article class="summary-card">
+                    <div class="summary-icon">▣</div>
+                    <div><p>Total Rooms</p><h2 id="totalRooms">--</h2></div>
+                    <span class="summary-arrow">›</span>
+                </article>
+
+                <article class="summary-card">
+                    <div class="summary-icon">♧</div>
+                    <div><p>Available Rooms</p><h2 id="availableRooms">--</h2></div>
+                    <span class="summary-arrow">›</span>
+                </article>
+
+                <article class="summary-card">
+                    <div class="summary-icon">♙</div>
+                    <div><p>Customers</p><h2 id="totalCustomers">--</h2></div>
+                    <span class="summary-arrow">›</span>
+                </article>
+            </section>
+
+            <section class="panel" id="rooms">
+                <div class="panel-heading">
+                    <div class="heading-title">
+                        <span class="heading-icon">▣</span>
+                        <div>
+                            <h2>Room Overview</h2>
+                            <p class="muted">Click any room card to view its future bookings</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="loadDashboard()">↻ Refresh Data</button>
+                </div>
+
+                <p id="roomMessage" class="room-message">Loading rooms...</p>
+                <div id="roomList" class="room-grid"></div>
+            </section>
+
+            <section class="panel" id="customers">
+                <div class="panel-heading">
+                    <div class="heading-title">
+                        <span class="heading-icon">♙</span>
+                        <div>
+                            <h2>Recent Customers</h2>
+                            <p class="muted">Customers stored in your database</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th></tr>
+                        </thead>
+                        <tbody id="customerList">
+                            <tr><td colspan="4">Loading customers...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel" id="customer-history">
+                <div class="panel-heading">
+                    <div class="heading-title">
+                        <span class="heading-icon">▦</span>
+                        <div>
+                            <h2>Customer Stay &amp; Payment History</h2>
+                            <p class="muted">Bookings, stay dates and payment records</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="loadCustomerHistory()">
+                        ↻ Refresh History
+                    </button>
+                </div>
+
+                <div class="reservation-search">
+                    <input
+                        type="text"
+                        id="reservationSearch"
+                        placeholder="Search by customer name or reservation ID..."
+                        aria-label="Search reservations"
+                    >
+
+                    <select id="reservationStatusFilter" aria-label="Filter by booking status">
+                        <option value="All">All Reservations</option>
+                        <option value="Booked">Booked</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Checked In">Checked In</option>
+                        <option value="Checked Out">Checked Out</option>
+                    </select>
+
+                    <button type="button" id="clearReservationFilters">
+                        Clear Filters
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Room</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Rate / Night</th>
+                                <th>Amount Paid</th>
+                                <th>Payment Method</th>
+                                <th>Payment Status</th>
+                                <th>Booking Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyList">
+                            <tr><td colspan="10">Loading history...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <p id="errorMessage" role="alert"></p>
+
+            <footer class="page-footer">
+                <span>♛ &nbsp; Hotel Royal</span>
+                <span>Your guests, our priority</span>
+                <span>Hotel Management System</span>
+            </footer>
+        </div>
+    </main>
+
+    <!-- Future Bookings Modal Popup -->
+    <div id="roomModal" class="modal" hidden>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalRoomTitle">Future Bookings</h3>
+                <button type="button" id="closeModalButton" class="close-btn">&times;</button>
+            </div>
+            <div id="modalBody" class="modal-body">
+                <p>Loading future bookings...</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+'use strict';
+
+const today = new Date();
+
+function localDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+document.getElementById('today').textContent =
+    today.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+
+const customerNameInput = document.getElementById('customerName');
+const customerPhoneInput = document.getElementById('customerPhone');
+const customerEmailInput = document.getElementById('customerEmail');
+const checkInInput = document.getElementById('checkInDate');
+const checkOutInput = document.getElementById('checkOutDate');
+const roomSelect = document.getElementById('bookingRoom');
+const bookButton = document.getElementById('bookRoomButton');
+const availabilityMessage = document.getElementById('availabilityMessage');
+const reservationMessage = document.getElementById('reservationMessage');
+const bookingTotal = document.getElementById('bookingTotal');
+const bookingTotalAmount = document.getElementById('bookingTotalAmount');
+const bookingNights = document.getElementById('bookingNights');
+
+const reservationSearch = document.getElementById('reservationSearch');
+const reservationStatusFilter = document.getElementById('reservationStatusFilter');
+const clearReservationFilters = document.getElementById('clearReservationFilters');
+
+checkInInput.min = localDate(today);
+checkOutInput.min = localDate(today);
+
+let availableRooms = [];
+let loadingAvailability = false;
+let submittingReservation = false;
+let availabilityRequestNumber = 0;
+
+function showReservationMessage(message, type = '') {
+    reservationMessage.textContent = message;
+    reservationMessage.className = type;
+}
+
+function resetRoomChoices(message = 'Select dates first') {
+    roomSelect.innerHTML = '';
+
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = message;
+
+    roomSelect.appendChild(option);
+    roomSelect.disabled = true;
+
+    availableRooms = [];
+    bookButton.disabled = true;
+    bookingTotal.style.display = 'none';
+}
+
+function updateBookingTotal() {
+    const room = availableRooms.find(
+        item => String(item.room_id) === roomSelect.value
+    );
+
+    const checkIn = checkInInput.value;
+    const checkOut = checkOutInput.value;
+
+    if (!room || !checkIn || !checkOut || checkOut <= checkIn ||
+        loadingAvailability || submittingReservation) {
+        bookingTotal.style.display = 'none';
+        bookButton.disabled = true;
+        return;
+    }
+
+    const start = new Date(`${checkIn}T00:00:00Z`);
+    const end = new Date(`${checkOut}T00:00:00Z`);
+
+    const nights = (end - start) / 86400000;
+
+    if (
+        !checkIn ||
+        !checkOut ||
+        Number.isNaN(start.getTime()) ||
+        Number.isNaN(end.getTime()) ||
+        !Number.isInteger(nights) ||
+        nights <= 0
+    ) {
+        alert('Please select valid check-in and check-out dates.');
+        return;
+    }
+
+    const rate = Number(room.standard_rate);
+    const total = rate * nights;
+
+    bookingTotalAmount.textContent =
+        '₹' + total.toLocaleString('en-IN');
+
+    bookingNights.textContent =
+        `${nights} night${nights === 1 ? '' : 's'} × ₹${rate.toLocaleString('en-IN')}`;
+
+    bookingTotal.style.display = 'block';
+    bookButton.disabled = false;
+}
+
+async function loadAvailableRooms() {
+    const requestNumber = ++availabilityRequestNumber;
+
+    showReservationMessage('');
+    resetRoomChoices();
+
+    const checkIn = checkInInput.value;
+    const checkOut = checkOutInput.value;
+    const todayString = localDate(new Date());
+
+    checkOutInput.min = checkIn || todayString;
+
+    if (!checkIn || !checkOut) {
+        availabilityMessage.textContent =
+            'Select both check-in and check-out dates to find rooms.';
+        loadingAvailability = false;
+        return;
+    }
+
+    if (checkIn < todayString) {
+        availabilityMessage.textContent =
+            'Check-in cannot be in the past.';
+        loadingAvailability = false;
+        return;
+    }
+
+    if (checkOut <= checkIn) {
+        availabilityMessage.textContent =
+            'Check-out must be after check-in.';
+        loadingAvailability = false;
+        return;
+    }
+
+    loadingAvailability = true;
+    availabilityMessage.textContent =
+        'Checking room availability...';
+
+    try {
+        const params = new URLSearchParams({ checkIn, checkOut });
+
+        const response = await fetch(
+            `/api/rooms/availability?${params.toString()}`
+        );
+
+        const data = await response.json();
+
+        if (requestNumber !== availabilityRequestNumber) return;
+
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(
+                data.message || 'Unable to check room availability.'
+            );
+        }
+
+        availableRooms = (data.rooms || []).filter(
+            room => Number(room.is_available) === 1
+        );
+
+        if (availableRooms.length === 0) {
+            availabilityMessage.textContent =
+                'No rooms are available for these dates. Try different dates.';
+            resetRoomChoices('No rooms available');
+            return;
+        }
+
+        roomSelect.innerHTML =
+            '<option value="">Choose an available room</option>';
+
+        const categories = ['Standard', 'Deluxe', 'Suite'];
+
+        categories.forEach(category => {
+            const categoryRooms = availableRooms.filter(room =>
+                String(room.room_type || '').toLowerCase() ===
+                category.toLowerCase()
+            );
+
+            if (categoryRooms.length === 0) return;
+
+            const group = document.createElement('optgroup');
+            group.label = `${category} Rooms`;
+
+            categoryRooms.forEach(room => {
+                const option = document.createElement('option');
+                option.value = room.room_id;
+                option.textContent =
+                    `Room ${room.room_number} — ₹${Number(room.standard_rate).toLocaleString('en-IN')}/night`;
+                group.appendChild(option);
+            });
+
+            roomSelect.appendChild(group);
+        });
+
+        const knownCategories = categories.map(
+            category => category.toLowerCase()
+        );
+
+        const otherRooms = availableRooms.filter(room =>
+            !knownCategories.includes(
+                String(room.room_type || '').toLowerCase()
+            )
+        );
+
+        if (otherRooms.length > 0) {
+            const group = document.createElement('optgroup');
+            group.label = 'Other Rooms';
+
+            otherRooms.forEach(room => {
+                const option = document.createElement('option');
+                option.value = room.room_id;
+                option.textContent =
+                    `Room ${room.room_number} (${room.room_type}) — ₹${Number(room.standard_rate).toLocaleString('en-IN')}/night`;
+                group.appendChild(option);
+            });
+
+            roomSelect.appendChild(group);
+        }
+
+        roomSelect.disabled = false;
+
+        availabilityMessage.textContent =
+            `${availableRooms.length} room${availableRooms.length === 1 ? '' : 's'} available for ${checkIn} to ${checkOut}.`;
+
+    } catch (error) {
+        if (requestNumber !== availabilityRequestNumber) return;
+
+        availabilityMessage.textContent = error.message;
+        resetRoomChoices('Availability check failed');
+
+    } finally {
+        if (requestNumber === availabilityRequestNumber) {
+            loadingAvailability = false;
+            updateBookingTotal();
+        }
+    }
+}
+
+checkInInput.addEventListener('change', () => {
+    if (checkInInput.value) {
+        checkOutInput.min = checkInInput.value;
+
+        if (checkOutInput.value &&
+            checkOutInput.value <= checkInInput.value) {
+            checkOutInput.value = '';
+        }
+    }
+
+    loadAvailableRooms();
+    loadDashboard();
+});
+
+checkOutInput.addEventListener('change', () => {
+    loadAvailableRooms();
+    loadDashboard();
+});
+
+roomSelect.addEventListener('change', updateBookingTotal);
+
+document.getElementById('reservationForm')
+    .addEventListener('submit', async event => {
+        event.preventDefault();
+
+        if (submittingReservation) return;
+
+        showReservationMessage('');
+
+        const name = customerNameInput.value.trim();
+        const phone = customerPhoneInput.value.trim();
+        const email = customerEmailInput.value.trim();
+        const roomId = Number(roomSelect.value);
+        const checkIn = checkInInput.value;
+        const checkOut = checkOutInput.value;
+
+        if (!name || !phone || !roomId) {
+            showReservationMessage(
+                'Enter the guest details and select an available room.',
+                'error'
+            );
+            return;
+        }
+
+        if (!checkIn || !checkOut || checkOut <= checkIn) {
+            showReservationMessage(
+                'Please enter valid check-in and check-out dates.',
+                'error'
+            );
+            return;
+        }
+
+        const selectedRoom = availableRooms.find(
+            room => Number(room.room_id) === roomId
+        );
+
+        if (!selectedRoom) {
+            showReservationMessage(
+                'Please select a room from the current availability results.',
+                'error'
+            );
+            return;
+        }
+
+        submittingReservation = true;
+        bookButton.disabled = true;
+        bookButton.textContent = 'Processing...';
+
+        let customerWasCreated = false;
+
+        try {
+            const customerResponse = await fetch('/api/customers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    customer_name: name,
+                    phone: phone,
+                    email: email,
+                    address: 'Not provided'
+                })
+            });
+
+            const customerData = await customerResponse.json();
+
+            if (!customerResponse.ok ||
+                customerData.status !== 'success') {
+                throw new Error(
+                    customerData.message || 'Could not save customer.'
+                );
+            }
+
+            const customerId =
+                customerData.customer_id ??
+                customerData.customer?.customer_id ??
+                customerData.customer?.insertId ??
+                customerData.insertId;
+
+            if (!customerId) {
+                customerWasCreated = true;
+                throw new Error(
+                    'The customer API did not return a customer ID. Check the customer list before retrying.'
+                );
+            }
+
+            customerWasCreated = true;
+
+            const reservationResponse = await fetch(
+                '/api/reservations',
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        customer_id: Number(customerId),
+                        room_id: roomId,
+                        check_in_date: checkIn,
+                        check_out_date: checkOut
+                    })
+                }
+            );
+
+            const reservationData = await reservationResponse.json();
+
+            if (!reservationResponse.ok ||
+                reservationData.status !== 'success') {
+                throw new Error(
+                    reservationData.message ||
+                    'The reservation could not be created.'
+                );
+            }
+
+            checkInInput.dataset.lastBookedDate = checkIn;
+            checkOutInput.dataset.lastBookedDate = checkOut;
+
+            const start = new Date(`${checkIn}T00:00:00Z`);
+            const end = new Date(`${checkOut}T00:00:00Z`);
+            const nights = (end - start) / 86400000;
+
+            const rate = Number(
+                reservationData.booked_rate ?? selectedRoom.standard_rate
+            );
+
+            const total = rate * nights;
+
+            document.getElementById('receiptReservationId').textContent =
+                reservationData.reservation_id;
+
+            document.getElementById('receiptReservationStatus').textContent =
+                reservationData.reservation_status || 'Booked';
+
+            document.getElementById('receiptBookingStatus').textContent =
+                reservationData.reservation_status || 'Booked';
+
+            document.getElementById('receiptCustomerId').textContent = customerId;
+            document.getElementById('receiptCustomerName').textContent = name;
+
+            document.getElementById('receiptRoomId').textContent = roomId;
+            document.getElementById('receiptRoomNumber').textContent =
+                selectedRoom.room_number;
+
+            document.getElementById('receiptRoomType').textContent =
+                selectedRoom.room_type || selectedRoom.type_name || 'Room';
+
+            document.getElementById('receiptCheckIn').textContent = checkIn;
+            document.getElementById('receiptCheckOut').textContent = checkOut;
+            document.getElementById('receiptNights').textContent = nights;
+
+            document.getElementById('receiptRate').textContent =
+                `₹${rate.toFixed(2)}`;
+
+            document.getElementById('receiptTotal').textContent =
+                `₹${total.toFixed(2)}`;
+
+            const paymentResponse = await fetch('/api/customer-history');
+            const paymentData = await paymentResponse.json();
+
+            const bookingPayment = (paymentData.history || []).find(
+                item => Number(item.reservation_id) ===
+                    Number(reservationData.reservation_id) &&
+                    item.payment_id
+            );
+
+            if (bookingPayment) {
+                document.getElementById('receiptPaymentId').textContent =
+                    bookingPayment.payment_id;
+
+                document.getElementById('receiptPaymentMethod').textContent =
+                    bookingPayment.payment_method || 'Not recorded';
+
+                document.getElementById('receiptAmountPaid').textContent =
+                    `₹${Number(bookingPayment.payment_amount || 0).toFixed(2)}`;
+
+                document.getElementById('receiptPaymentStatus').textContent =
+                    bookingPayment.payment_status || 'Pending';
+            } else {
+                document.getElementById('receiptPaymentId').textContent =
+                    'Not recorded';
+
+                document.getElementById('receiptPaymentMethod').textContent =
+                    'Not recorded';
+
+                document.getElementById('receiptAmountPaid').textContent =
+                    '₹0.00';
+
+                document.getElementById('receiptPaymentStatus').textContent =
+                    'No payment recorded';
+            }
+
+            document.getElementById('reservationReceipt').hidden = false;
+
+            showReservationMessage(
+                `Reservation confirmed! Booking ID: ${reservationData.reservation_id}.`,
+                'success'
+            );
+
+            document.getElementById('reservationReceipt').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+
+            document.getElementById('reservationForm').reset();
+
+            checkInInput.min = localDate(new Date());
+            checkOutInput.min = localDate(new Date());
+
+            resetRoomChoices();
+
+            availabilityMessage.textContent =
+                'Showing availability for the most recent booking dates.';
+
+            await loadDashboard();
+            await loadCustomerHistory();
+
+        } catch (error) {
+            let message = error.message;
+
+            if (customerWasCreated) {
+                message +=
+                    ' A customer record may have been saved. Check the customer list before trying again.';
+            }
+
+            showReservationMessage(message, 'error');
+
+        } finally {
+            submittingReservation = false;
+            bookButton.textContent = 'Confirm Reservation →';
+            updateBookingTotal();
+        }
+    });
+
+async function loadDashboard() {
+    const errorMessage = document.getElementById('errorMessage');
+    const roomMessage = document.getElementById('roomMessage');
+
+    errorMessage.textContent = '';
+
+    try {
+        const checkIn =
+            checkInInput.value ||
+            checkInInput.dataset.lastBookedDate ||
+            '';
+
+        const checkOut =
+            checkOutInput.value ||
+            checkOutInput.dataset.lastBookedDate ||
+            '';
+
+        const hasValidDates =
+            Boolean(checkIn && checkOut && checkOut > checkIn);
+
+        const requests = [
+            fetch('/api/rooms'),
+            fetch('/api/customers')
+        ];
+
+        if (hasValidDates) {
+            requests.push(
+                fetch(
+                    `/api/rooms/availability?checkIn=${encodeURIComponent(checkIn)}&checkOut=${encodeURIComponent(checkOut)}`
+                )
+            );
+        }
+
+        const responses = await Promise.all(requests);
+
+        if (responses.some(response => !response.ok)) {
+            throw new Error('Unable to load database records.');
+        }
+
+        const roomData = await responses[0].json();
+        const customerData = await responses[1].json();
+
+        const rooms = roomData.rooms || [];
+        const customers = customerData.customers || [];
+        const availabilityMap = new Map();
+
+        if (hasValidDates) {
+            const availabilityData = await responses[2].json();
+
+            if (availabilityData.status !== 'success') {
+                throw new Error(
+                    availabilityData.message ||
+                    'Unable to check room availability.'
+                );
+            }
+
+            (availabilityData.rooms || []).forEach(room => {
+                availabilityMap.set(
+                    String(room.room_id),
+                    Number(room.is_available) === 1
+                );
+            });
+        }
+
+        document.getElementById('totalRooms').textContent =
+            rooms.length;
+
+        document.getElementById('availableRooms').textContent =
+            hasValidDates
+                ? rooms.filter(room =>
+                    availabilityMap.get(String(room.room_id)) === true &&
+                    !['maintenance', 'cleaning'].includes(
+                        String(room.room_status || '').toLowerCase()
+                    )
+                ).length
+                : rooms.filter(room =>
+                    String(room.room_status || '').toLowerCase() ===
+                    'available'
+                ).length;
+
+        document.getElementById('totalCustomers').textContent =
+            customers.length;
+
+        roomMessage.textContent = rooms.length
+            ? hasValidDates
+                ? `Room availability for ${checkIn} to ${checkOut}. Click any room card to view its future bookings.`
+                : 'Select check-in and check-out dates, or click any room card to view its future bookings.'
+            : 'No rooms found.';
+
+        const roomList = document.getElementById('roomList');
+        roomList.innerHTML = '';
+
+        rooms.forEach(room => {
+            const storedStatus = String(room.room_status || 'Unknown');
+            let status = storedStatus;
+
+            const unavailableOperationally =
+                ['maintenance', 'cleaning'].includes(
+                    storedStatus.toLowerCase()
+                );
+
+            if (
+                !unavailableOperationally &&
+                hasValidDates &&
+                availabilityMap.has(String(room.room_id))
+            ) {
+                status = availabilityMap.get(String(room.room_id))
+                    ? 'Available'
+                    : 'Booked';
+            }
+
+            const statusClass = status.toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-');
+
+            const roomType = String(room.room_type || 'Room');
+
+            let imageUrl =
+                'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=700&q=80';
+
+            if (/suite/i.test(roomType)) {
+                imageUrl =
+                    'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=700&q=80';
+            }
+
+            const card = document.createElement('article');
+            card.className = 'room-card';
+            card.style.cursor = 'pointer';
+
+            // Click room card to open future bookings modal
+            card.addEventListener('click', async () => {
+                const modal = document.getElementById('roomModal');
+                const modalTitle = document.getElementById('modalRoomTitle');
+                const modalBody = document.getElementById('modalBody');
+
+                modalTitle.textContent = `Future Bookings — Room ${room.room_number} (${roomType})`;
+                modalBody.innerHTML = '<p>Loading future bookings...</p>';
+                modal.hidden = false;
+
+                try {
+                    const res = await fetch(`/api/rooms/${room.room_id}/future-reservations`);
+                    const data = await res.json();
+
+                    if (!res.ok || data.status !== 'success') {
+                        throw new Error(data.message || 'Could not load future bookings.');
+                    }
+
+                    const bookings = data.reservations || [];
+
+                    if (bookings.length === 0) {
+                        modalBody.innerHTML = '<p>No future bookings found for this room.</p>';
+                        return;
+                    }
+
+                    let html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Reservation ID</th>
+                                    <th>Customer ID</th>
+                                    <th>Customer Name</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    bookings.forEach(b => {
+                        html += `
+                            <tr>
+                                <td>${b.reservation_id}</td>
+                                <td>${b.customer_id}</td>
+                                <td>${b.customer_name}</td>
+                                <td>${b.check_in_date.split('T')[0]}</td>
+                                <td>${b.check_out_date.split('T')[0]}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table>';
+                    modalBody.innerHTML = html;
+
+                } catch (err) {
+                    modalBody.innerHTML = `<p style="color: #b42318;">${err.message}</p>`;
+                }
+            });
+
+            const imageWrap = document.createElement('div');
+            imageWrap.className = 'room-image-wrap';
+
+            const image = document.createElement('img');
+            image.className = 'room-image';
+            image.src = imageUrl;
+            image.alt = `Room ${room.room_number}`;
+            image.loading = 'lazy';
+
+            const badge = document.createElement('span');
+            badge.className = `status ${statusClass}`;
+            badge.textContent = status;
+
+            imageWrap.append(image, badge);
+
+            const content = document.createElement('div');
+            content.className = 'room-card-content';
+
+            const top = document.createElement('div');
+            top.className = 'room-top';
+
+            const roomName = document.createElement('strong');
+            roomName.textContent = `Room ${room.room_number}`;
+
+            const floor = document.createElement('span');
+            floor.className = 'room-floor';
+            floor.textContent = `Floor ${room.floor_number}`;
+
+            top.append(roomName, floor);
+
+            const type = document.createElement('p');
+            type.className = 'room-type';
+            type.textContent = roomType;
+
+            const rate = document.createElement('p');
+            rate.className = 'rate';
+            rate.textContent =
+                `₹${Number(room.standard_rate).toLocaleString('en-IN')} `;
+
+            const perNight = document.createElement('small');
+            perNight.textContent = '/ night';
+
+            rate.appendChild(perNight);
+            content.append(top, type, rate);
+            card.append(imageWrap, content);
+            roomList.appendChild(card);
+        });
+
+        const customerList = document.getElementById('customerList');
+        customerList.innerHTML = '';
+
+        customers.slice(0, 10).forEach(customer => {
+            const row = document.createElement('tr');
+
+            [
+                customer.customer_id,
+                customer.customer_name,
+                customer.phone,
+                customer.email || '-'
+            ].forEach(value => {
+                const cell = document.createElement('td');
+                cell.textContent = value ?? '-';
+                row.appendChild(cell);
+            });
+
+            customerList.appendChild(row);
+        });
+
+        if (customers.length === 0) {
+            customerList.innerHTML =
+                '<tr><td colspan="4">No customers found.</td></tr>';
+        }
+
+    } catch (error) {
+        errorMessage.textContent =
+            error.message + ' Check that the backend is running.';
+
+        roomMessage.textContent = 'Rooms could not be loaded.';
+        console.error('Dashboard error:', error);
+    }
+}
+
+// Modal Close Handlers
+document.getElementById('closeModalButton').addEventListener('click', () => {
+    document.getElementById('roomModal').hidden = true;
+});
+
+window.addEventListener('click', (event) => {
+    const modal = document.getElementById('roomModal');
+    if (event.target === modal) {
+        modal.hidden = true;
+    }
+});
+
+async function loadCustomerHistory() {
+    const tbody = document.getElementById('historyList');
+
+    tbody.innerHTML =
+        '<tr><td colspan="10">Loading history...</td></tr>';
+
+    try {
+        const response = await fetch('/api/customer-history');
+
+        if (!response.ok) {
+            throw new Error('Unable to load customer history.');
+        }
+
+        const data = await response.json();
+        const history = data.history || [];
+
+        if (history.length === 0) {
+            tbody.innerHTML =
+                '<tr><td colspan="10">No customer records found.</td></tr>';
+            return;
+        }
+
+        const formatDate = date => {
+            if (!date) return '-';
+
+            const value = new Date(date);
+
+            if (Number.isNaN(value.getTime())) return '-';
+
+            return value.toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                timeZone: 'UTC'
+            });
+        };
+
+        tbody.innerHTML = '';
+
+        history.forEach(item => {
+            const row = document.createElement('tr');
+
+            row.dataset.customerName =
+                String(item.customer_name || '');
+
+            row.dataset.reservationId =
+                String(item.reservation_id || '');
+
+            row.dataset.reservationStatus =
+                String(item.reservation_status || '');
+
+            row.dataset.historyRow = 'true';
+
+            const values = [
+                item.customer_name,
+                item.room_number
+                    ? `${item.room_number} (${item.room_type || ''})`
+                    : '-',
+                formatDate(item.check_in_date),
+                formatDate(item.check_out_date),
+                item.booked_rate == null
+                    ? '-'
+                    : `₹${Number(item.booked_rate).toLocaleString('en-IN')}`,
+                item.payment_amount == null
+                    ? '-'
+                    : `₹${Number(item.payment_amount).toLocaleString('en-IN')}`,
+                item.payment_method || '-'
+            ];
+
+            values.forEach(value => {
+                const cell = document.createElement('td');
+                cell.textContent = value ?? '-';
+                row.appendChild(cell);
+            });
+
+            const paymentCell = document.createElement('td');
+
+            if (item.payment_id) {
+                const paymentSelect = document.createElement('select');
+
+                ['Pending', 'Completed', 'Failed'].forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status;
+                    option.textContent = status;
+                    paymentSelect.appendChild(option);
+                });
+
+                paymentSelect.value = item.payment_status || 'Pending';
+                paymentSelect.setAttribute(
+                    'aria-label',
+                    'Payment status'
+                );
+
+                paymentCell.appendChild(paymentSelect);
+            } else {
+                paymentCell.textContent = 'No payment';
+            }
+
+            row.appendChild(paymentCell);
+
+            const bookingCell = document.createElement('td');
+            const bookingBadge = document.createElement('span');
+
+            bookingBadge.className =
+                'table-status ' +
+                String(item.reservation_status || '-')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-');
+
+            bookingBadge.textContent = item.reservation_status || '-';
+
+            bookingCell.appendChild(bookingBadge);
+            row.appendChild(bookingCell);
+
+            const actionsCell = document.createElement('td');
+
+            if (item.payment_id) {
+                const viewReceiptButton = document.createElement('button');
+                viewReceiptButton.type = 'button';
+                viewReceiptButton.textContent = 'View Receipt';
+                viewReceiptButton.style.marginRight = '5px';
+
+                viewReceiptButton.addEventListener('click', () => {
+                    const checkIn = new Date(item.check_in_date);
+                    const checkOut = new Date(item.check_out_date);
+                    const nights = Math.round(
+                        (Date.UTC(checkOut.getFullYear(), checkOut.getMonth(), checkOut.getDate()) -
+                         Date.UTC(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate())) / (1000 * 60 * 60 * 24)
+                    );
+                    const rate = Number(item.booked_rate || 0);
+                    const total = rate * nights;
+
+                    document.getElementById('receiptBookingStatus').textContent = item.reservation_status || 'Booked';
+                    document.getElementById('receiptReservationId').textContent = item.reservation_id || '-';
+                    document.getElementById('receiptReservationStatus').textContent = item.reservation_status || 'Booked';
+                    document.getElementById('receiptCustomerId').textContent = item.customer_id || '-';
+                    document.getElementById('receiptCustomerName').textContent = item.customer_name || '-';
+                    document.getElementById('receiptRoomId').textContent = item.room_id || '-';
+                    document.getElementById('receiptRoomNumber').textContent = item.room_number || '-';
+                    document.getElementById('receiptRoomType').textContent = item.room_type || '-';
+                    document.getElementById('receiptCheckIn').textContent = item.check_in_date ? item.check_in_date.split('T')[0] : '-';
+                    document.getElementById('receiptCheckOut').textContent = item.check_out_date ? item.check_out_date.split('T')[0] : '-';
+                    document.getElementById('receiptNights').textContent = nights;
+                    document.getElementById('receiptRate').textContent = `₹${rate.toLocaleString('en-IN')}`;
+                    document.getElementById('receiptTotal').textContent = `₹${total.toLocaleString('en-IN')}`;
+
+                    document.getElementById('receiptPaymentId').textContent = item.payment_id;
+                    document.getElementById('receiptPaymentMethod').textContent = item.payment_method || '-';
+                    document.getElementById('receiptAmountPaid').textContent = `₹${Number(item.payment_amount || item.amount || 0).toLocaleString('en-IN')}`;
+                    document.getElementById('receiptPaymentStatus').textContent = item.payment_status || '-';
+
+                    const receiptSection = document.getElementById('reservationReceipt');
+                    if (receiptSection) {
+                        receiptSection.hidden = false;
+                        receiptSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+
+                actionsCell.appendChild(viewReceiptButton);
+
+                const updateButton = document.createElement('button');
+                updateButton.type = 'button';
+                updateButton.textContent = 'Update';
+                updateButton.disabled = true;
+
+                paymentSelectSetup(
+                    paymentCell,
+                    updateButton,
+                    item.payment_id
+                );
+
+                actionsCell.appendChild(updateButton);            
+            } else if (item.reservation_id) {
+                const recordPaymentButton = document.createElement('button');
+                recordPaymentButton.type = 'button';
+                recordPaymentButton.textContent = 'Record Payment';
+
+                recordPaymentButton.addEventListener('click', async () => {
+                    const checkIn = new Date(item.check_in_date);
+                    const checkOut = new Date(item.check_out_date);
+
+                    const nights = Math.round(
+                        (Date.UTC(
+                            checkOut.getFullYear(),
+                            checkOut.getMonth(),
+                            checkOut.getDate()
+                        ) -
+                        Date.UTC(
+                            checkIn.getFullYear(),
+                            checkIn.getMonth(),
+                            checkIn.getDate()
+                        )) / (1000 * 60 * 60 * 24)
+                    );
+
+                    const rate = Number(item.booked_rate);
+                    const suggestedAmount = rate * nights;
+
+                    if (
+                        !Number.isFinite(suggestedAmount) ||
+                        nights <= 0 ||
+                        rate <= 0
+                    ) {
+                        alert('Unable to calculate the booking cost. Please check the booking details.');
+                        return;
+                    }
+
+                    const amountInput = prompt(
+                        `Reservation ID: ${item.reservation_id}\n` +
+                        `Stay: ${nights} night(s)\n` +
+                        `Nightly rate: ₹${rate.toLocaleString('en-IN')}\n` +
+                        `Suggested booking cost: ₹${suggestedAmount.toLocaleString('en-IN')}\n\n` +
+                        'Enter payment amount:',
+                        suggestedAmount.toFixed(2)
+                    );
+
+                    if (amountInput === null) return;
+
+                    const amount = Number(amountInput.trim());
+
+                    if (
+                        !Number.isFinite(amount) ||
+                        amount <= 0 ||
+                        !/^\d+(\.\d{1,2})?$/.test(amountInput.trim())
+                    ) {
+                        alert('Enter a valid positive amount with at most two decimal places.');
+                        return;
+                    }
+
+                    const paymentMethod = prompt(
+                        'Choose payment method by entering Cash, Card, or UPI:',
+                        'UPI'
+                    );
+
+                    if (paymentMethod === null) return;
+
+                    if (!['Cash', 'Card', 'UPI'].includes(paymentMethod)) {
+                        alert('Payment method must be Cash, Card, or UPI.');
+                        return;
+                    }
+
+                    const paymentStatus = prompt(
+                        'Choose payment status: Pending, Completed, or Failed:',
+                        'Pending'
+                    );
+
+                    if (paymentStatus === null) return;
+
+                    if (!['Pending', 'Completed', 'Failed'].includes(paymentStatus)) {
+                        alert('Payment status must be Pending, Completed, or Failed.');
+                        return;
+                    }
+
+                    const confirmed = confirm(
+                        `Record this payment entry?\n\n` +
+                        `Reservation: ${item.reservation_id}\n` +
+                        `Amount: ₹${amount.toLocaleString('en-IN')}\n` +
+                        `Method: ${paymentMethod}\n` +
+                        `Status: ${paymentStatus}\n\n` +
+                        'This records a database entry; it does not transfer money.'
+                    );
+
+                    if (!confirmed) return;
+
+                    recordPaymentButton.disabled = true;
+                    recordPaymentButton.textContent = 'Recording...';
+
+                    try {
+                        const response = await fetch('/api/payments', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                reservation_id: item.reservation_id,
+                                amount,
+                                payment_method: paymentMethod,
+                                payment_status: paymentStatus
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (!response.ok || result.status !== 'success') {
+                            throw new Error(
+                                result.message || 'Unable to record payment.'
+                            );
+                        }
+
+                        alert('Payment record saved successfully.');
+
+                        await loadCustomerHistory();
+                        await loadDashboard();
+
+                        const historyResponse = await fetch('/api/customer-history');
+                        const historyData = await historyResponse.json();
+
+                        const updatedItem = (historyData.history || []).find(
+                            h => Number(h.reservation_id) === Number(item.reservation_id) && h.payment_id
+                        );
+
+                        if (updatedItem) {
+                            const checkIn = new Date(updatedItem.check_in_date);
+                            const checkOut = new Date(updatedItem.check_out_date);
+                            const nights = Math.round(
+                                (Date.UTC(checkOut.getFullYear(), checkOut.getMonth(), checkOut.getDate()) -
+                                 Date.UTC(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate())) / (1000 * 60 * 60 * 24)
+                            );
+                            const rate = Number(updatedItem.booked_rate || 0);
+                            const total = rate * nights;
+
+                            document.getElementById('receiptBookingStatus').textContent = updatedItem.reservation_status || 'Booked';
+                            document.getElementById('receiptReservationId').textContent = updatedItem.reservation_id || '-';
+                            document.getElementById('receiptReservationStatus').textContent = updatedItem.reservation_status || 'Booked';
+                            document.getElementById('receiptCustomerId').textContent = updatedItem.customer_id || '-';
+                            document.getElementById('receiptCustomerName').textContent = updatedItem.customer_name || '-';
+                            document.getElementById('receiptRoomId').textContent = updatedItem.room_id || '-';
+                            document.getElementById('receiptRoomNumber').textContent = updatedItem.room_number || '-';
+                            document.getElementById('receiptRoomType').textContent = updatedItem.room_type || '-';
+                            document.getElementById('receiptCheckIn').textContent = updatedItem.check_in_date ? updatedItem.check_in_date.split('T')[0] : '-';
+                            document.getElementById('receiptCheckOut').textContent = updatedItem.check_out_date ? updatedItem.check_out_date.split('T')[0] : '-';
+                            document.getElementById('receiptNights').textContent = nights;
+                            document.getElementById('receiptRate').textContent = `₹${rate.toLocaleString('en-IN')}`;
+                            document.getElementById('receiptTotal').textContent = `₹${total.toLocaleString('en-IN')}`;
+
+                            document.getElementById('receiptPaymentId').textContent = updatedItem.payment_id;
+                            document.getElementById('receiptPaymentMethod').textContent = updatedItem.payment_method || '-';
+                            document.getElementById('receiptAmountPaid').textContent = `₹${Number(updatedItem.payment_amount || updatedItem.amount || 0).toLocaleString('en-IN')}`;
+                            document.getElementById('receiptPaymentStatus').textContent = updatedItem.payment_status || '-';
+
+                            const receiptSection = document.getElementById('reservationReceipt');
+                            if (receiptSection) {
+                                receiptSection.hidden = false;
+                                receiptSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }
+                    } catch (error) {
+                        alert(error.message);
+                        recordPaymentButton.disabled = false;
+                        recordPaymentButton.textContent = 'Record Payment';
+                    }
+                });
+
+                actionsCell.appendChild(recordPaymentButton);
+            }
+
+            if (
+                item.reservation_id &&
+                !['Cancelled', 'Checked In', 'Checked Out'].includes(
+                    item.reservation_status
+                )
+            ) {
+                const cancelButton = document.createElement('button');
+
+                cancelButton.type = 'button';
+                cancelButton.textContent = 'Cancel';
+                cancelButton.style.marginLeft = '6px';
+
+                cancelButton.addEventListener('click', async () => {
+                    const confirmed = confirm(
+                        `Are you sure you want to cancel reservation ${item.reservation_id}?`
+                    );
+
+                    if (!confirmed) return;
+
+                    cancelButton.disabled = true;
+                    cancelButton.textContent = 'Cancelling...';
+
+                    try {
+                        const cancelResponse = await fetch(
+                            `/api/reservations/${item.reservation_id}/cancel`,
+                            { method: 'PATCH' }
+                        );
+
+                        const result = await cancelResponse.json();
+
+                        if (!cancelResponse.ok) {
+                            throw new Error(
+                                result.message ||
+                                'Unable to cancel reservation.'
+                            );
+                        }
+
+                        alert('Reservation cancelled successfully.');
+
+                        await loadCustomerHistory();
+                        await loadDashboard();
+
+                    } catch (error) {
+                        alert(error.message);
+                        cancelButton.disabled = false;
+                        cancelButton.textContent = 'Cancel';
+                    }
+                });
+
+                actionsCell.appendChild(cancelButton);
+            }
+
+            if (!actionsCell.hasChildNodes()) {
+                actionsCell.textContent = '-';
+            }
+
+            row.appendChild(actionsCell);
+            tbody.appendChild(row);
+        });
+
+        filterReservationHistory();
+
+    } catch (error) {
+        tbody.innerHTML =
+            '<tr><td colspan="10">Unable to load history. Please refresh.</td></tr>';
+
+        console.error('Customer history error:', error);
+    }
+}
+
+function filterReservationHistory() {
+    const searchText = reservationSearch.value.trim().toLowerCase();
+    const selectedStatus = reservationStatusFilter.value;
+    const tbody = document.getElementById('historyList');
+
+    const rows = tbody.querySelectorAll(
+        'tr[data-history-row="true"]'
+    );
+
+    let visibleCount = 0;
+
+    const oldMessage = document.getElementById('noReservationMatches');
+
+    if (oldMessage) {
+        oldMessage.remove();
+    }
+
+    rows.forEach(row => {
+        const customerName =
+            (row.dataset.customerName || '').toLowerCase();
+
+        const reservationId =
+            (row.dataset.reservationId || '').toLowerCase();
+
+        const reservationStatus =
+            row.dataset.reservationStatus || '';
+
+        const matchesSearch =
+            customerName.includes(searchText) ||
+            reservationId.includes(searchText);
+
+        const matchesStatus =
+            selectedStatus === 'All' ||
+            reservationStatus === selectedStatus;
+
+        row.hidden = !(matchesSearch && matchesStatus);
+
+        if (!row.hidden) {
+            visibleCount++;
+        }
+    });
+
+    if (rows.length > 0 && visibleCount === 0) {
+        const messageRow = document.createElement('tr');
+        messageRow.id = 'noReservationMatches';
+
+        const cell = document.createElement('td');
+        cell.colSpan = 10;
+        cell.textContent = 'No matching reservations found.';
+        cell.style.textAlign = 'center';
+        cell.style.padding = '20px';
+
+        messageRow.appendChild(cell);
+        tbody.appendChild(messageRow);
+    }
+}
+
+reservationSearch.addEventListener(
+    'input',
+    filterReservationHistory
+);
+
+reservationStatusFilter.addEventListener(
+    'change',
+    filterReservationHistory
+);
+
+clearReservationFilters.addEventListener('click', () => {
+    reservationSearch.value = '';
+    reservationStatusFilter.value = 'All';
+    filterReservationHistory();
+});
+
+function paymentSelectSetup(paymentCell, updateButton, paymentId) {
+    const paymentSelect = paymentCell.querySelector('select');
+
+    if (!paymentSelect) return;
+
+    let savedStatus = paymentSelect.value;
+
+    paymentSelect.addEventListener('change', () => {
+        updateButton.disabled =
+            paymentSelect.value === savedStatus;
+    });
+
+    updateButton.disabled = true;
+
+    updateButton.addEventListener('click', async () => {
+        updateButton.disabled = true;
+        updateButton.textContent = 'Saving...';
+
+        try {
+            const response = await fetch(
+                `/api/payments/${paymentId}/status`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        payment_status: paymentSelect.value
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || data.status !== 'success') {
+                throw new Error(
+                    data.message || 'Could not update payment.'
+                );
+            }
+
+            savedStatus = paymentSelect.value;
+            updateButton.textContent = 'Updated';
+
+            await loadCustomerHistory();
+
+        } catch (error) {
+            alert(error.message);
+            updateButton.textContent = 'Update';
+            updateButton.disabled = false;
+        }
+    });
+}
+
+document.getElementById('printReceiptButton')
+    .addEventListener('click', () => {
+        window.print();
+    });
+
+loadDashboard();
+loadCustomerHistory();
+</script>
+
+</body>
+</html>
