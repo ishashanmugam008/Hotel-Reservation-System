@@ -712,7 +712,29 @@
                         <tbody id="historyList">
                             <tr><td colspan="10">Loading history...</td></tr>
                         </tbody>
-                    </table>
+                                        </table>
+
+                    <!-- Record Navigation -->
+                    <div class="record-navigation">
+                        <button type="button" id="firstRecordBtn" disabled>
+                            « First
+                        </button>
+
+                        <button type="button" id="previousRecordBtn" disabled>
+                            ‹ Previous
+                        </button>
+
+                        <span id="recordPosition">No records selected</span>
+
+                        <button type="button" id="nextRecordBtn" disabled>
+                            Next ›
+                        </button>
+
+                        <button type="button" id="lastRecordBtn" disabled>
+                            Last »
+                        </button>
+                    </div>
+
                 </div>
             </section>
 
@@ -1928,25 +1950,27 @@ async function loadCustomerHistory() {
         console.error('Customer history error:', error);
     }
 }
+let currentHistoryRecordIndex = 0;
 
-function filterReservationHistory() {
+
+function filterReservationHistory(resetPosition = true) {
     const searchText = reservationSearch.value.trim().toLowerCase();
     const selectedStatus = reservationStatusFilter.value;
     const tbody = document.getElementById('historyList');
 
-    const rows = tbody.querySelectorAll(
-        'tr[data-history-row="true"]'
+    const rows = Array.from(
+        tbody.querySelectorAll('tr[data-history-row="true"]')
     );
 
-    let visibleCount = 0;
+    const recordsPerPage = 10;
 
     const oldMessage = document.getElementById('noReservationMatches');
-
     if (oldMessage) {
         oldMessage.remove();
     }
 
-    rows.forEach(row => {
+    // Find records matching the search and status filters.
+    const matchingRows = rows.filter(row => {
         const customerName =
             (row.dataset.customerName || '').toLowerCase();
 
@@ -1964,14 +1988,43 @@ function filterReservationHistory() {
             selectedStatus === 'All' ||
             reservationStatus === selectedStatus;
 
-        row.hidden = !(matchesSearch && matchesStatus);
-
-        if (!row.hidden) {
-            visibleCount++;
-        }
+        return matchesSearch && matchesStatus;
     });
 
-    if (rows.length > 0 && visibleCount === 0) {
+    // Reset to the first page when the filters change.
+    if (resetPosition) {
+        currentHistoryRecordIndex = 0;
+    }
+
+    // Calculate the starting index of the last page.
+    const lastPageStart = Math.max(
+        0,
+        Math.ceil(matchingRows.length / recordsPerPage) * recordsPerPage
+            - recordsPerPage
+    );
+
+    currentHistoryRecordIndex = Math.min(
+        Math.max(0, currentHistoryRecordIndex),
+        lastPageStart
+    );
+
+    // Hide all records first.
+    rows.forEach(row => {
+        row.hidden = true;
+    });
+
+    // Display up to 10 records on the current page.
+    const pageRows = matchingRows.slice(
+        currentHistoryRecordIndex,
+        currentHistoryRecordIndex + recordsPerPage
+    );
+
+    pageRows.forEach(row => {
+        row.hidden = false;
+    });
+
+    // Show a message when no records match.
+    if (matchingRows.length === 0 && rows.length > 0) {
         const messageRow = document.createElement('tr');
         messageRow.id = 'noReservationMatches';
 
@@ -1983,6 +2036,75 @@ function filterReservationHistory() {
 
         messageRow.appendChild(cell);
         tbody.appendChild(messageRow);
+    }
+
+    // Update the page counter.
+    const position = document.getElementById('recordPosition');
+    const currentPage =
+        Math.floor(currentHistoryRecordIndex / recordsPerPage) + 1;
+    const totalPages =
+        Math.ceil(matchingRows.length / recordsPerPage);
+
+    if (position) {
+        position.textContent = matchingRows.length > 0
+            ? `Page ${currentPage} of ${totalPages} (${matchingRows.length} records)`
+            : 'No matching records';
+    }
+
+    // First and Previous buttons.
+    const firstButton = document.getElementById('firstRecordBtn');
+    const previousButton = document.getElementById('previousRecordBtn');
+    const nextButton = document.getElementById('nextRecordBtn');
+    const lastButton = document.getElementById('lastRecordBtn');
+
+    if (firstButton) {
+        firstButton.disabled =
+            matchingRows.length === 0 || currentHistoryRecordIndex === 0;
+
+        firstButton.onclick = () => {
+            currentHistoryRecordIndex = 0;
+            filterReservationHistory(false);
+        };
+    }
+
+    if (previousButton) {
+        previousButton.disabled =
+            matchingRows.length === 0 || currentHistoryRecordIndex === 0;
+
+        previousButton.onclick = () => {
+            currentHistoryRecordIndex = Math.max(
+                0,
+                currentHistoryRecordIndex - recordsPerPage
+            );
+            filterReservationHistory(false);
+        };
+    }
+
+    // Next and Last buttons.
+    if (nextButton) {
+        nextButton.disabled =
+            currentHistoryRecordIndex + recordsPerPage >= matchingRows.length;
+
+        nextButton.onclick = () => {
+            if (
+                currentHistoryRecordIndex + recordsPerPage <
+                matchingRows.length
+            ) {
+                currentHistoryRecordIndex += recordsPerPage;
+                filterReservationHistory(false);
+            }
+        };
+    }
+
+    if (lastButton) {
+        lastButton.disabled =
+            matchingRows.length === 0 ||
+            currentHistoryRecordIndex >= lastPageStart;
+
+        lastButton.onclick = () => {
+            currentHistoryRecordIndex = lastPageStart;
+            filterReservationHistory(false);
+        };
     }
 }
 

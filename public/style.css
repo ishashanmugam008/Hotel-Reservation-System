@@ -867,3 +867,48 @@ a:focus-visible {
         align-items: flex-start;
     }
 }
+
+/* Customer history record navigation */
+.record-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+    padding: 14px;
+}
+
+.record-navigation button {
+    background: #204a37;
+    color: #fff;
+    border: 1px solid #2f5e49;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.record-navigation button:hover:not(:disabled) {
+    background: #163627;
+    border-color: #c6a45b;
+}
+
+.record-navigation button:disabled {
+    background: #2a3832;
+    color: #7a8680;
+    border-color: #33443c;
+    cursor: not-allowed;
+}
+
+#recordPosition {
+    color: #c6a45b;
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 120px;
+    text-align: center;
+}
+
