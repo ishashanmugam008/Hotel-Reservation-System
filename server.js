@@ -471,6 +471,7 @@ app.post('/api/reservations', async (req, res) => {
     }
 });
 
+
 app.get('/api/customer-history', async (req, res) => {
     try {
         const [history] = await db.query(`
@@ -496,7 +497,63 @@ app.get('/api/customer-history', async (req, res) => {
                 p.amount AS payment_amount,
                 p.payment_method,
                 p.payment_date,
-                p.payment_status
+                p.payment_status,
+
+                COALESCE((
+                    SELECT SUM(
+                        rr2.booked_rate *
+                        GREATEST(
+                            DATEDIFF(r.check_out_date, r.check_in_date),
+                            0
+                        )
+                    )
+                    FROM Reservation_Room rr2
+                    WHERE rr2.reservation_id = r.reservation_id
+                ), 0) AS room_booking_cost,
+
+                COALESCE((
+                    SELECT SUM(ac.amount)
+                    FROM Additional_Charge ac
+                    WHERE ac.reservation_id = r.reservation_id
+                ), 0) AS total_additional_charges,
+
+                COALESCE((
+                    SELECT SUM(p2.amount)
+                    FROM Payment p2
+                    WHERE p2.reservation_id = r.reservation_id
+                      AND p2.payment_status = 'Completed'
+                ), 0) AS total_completed_payments,
+
+                GREATEST(
+                    COALESCE((
+                        SELECT SUM(
+                            rr3.booked_rate *
+                            GREATEST(
+                                DATEDIFF(
+                                    r.check_out_date,
+                                    r.check_in_date
+                                ),
+                                0
+                            )
+                        )
+                        FROM Reservation_Room rr3
+                        WHERE rr3.reservation_id = r.reservation_id
+                    ), 0)
+                    +
+                    COALESCE((
+                        SELECT SUM(ac2.amount)
+                        FROM Additional_Charge ac2
+                        WHERE ac2.reservation_id = r.reservation_id
+                    ), 0)
+                    -
+                    COALESCE((
+                        SELECT SUM(p3.amount)
+                        FROM Payment p3
+                        WHERE p3.reservation_id = r.reservation_id
+                          AND p3.payment_status = 'Completed'
+                    ), 0),
+                    0
+                ) AS balance_due
 
             FROM Customer c
 
@@ -515,9 +572,10 @@ app.get('/api/customer-history', async (req, res) => {
             LEFT JOIN Payment p
                 ON r.reservation_id = p.reservation_id
 
-            ORDER BY c.customer_id DESC,
-                     r.reservation_id DESC,
-                     p.payment_id DESC
+            ORDER BY
+                c.customer_id DESC,
+                r.reservation_id DESC,
+                p.payment_id DESC
         `);
 
         res.json({
@@ -527,7 +585,10 @@ app.get('/api/customer-history', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Customer history error:', error.message);
+        console.error(
+            'Customer history error:',
+            error.message
+        );
 
         res.status(500).json({
             status: 'error',
@@ -747,6 +808,148 @@ app.patch('/api/reservations/:reservationId/cancel', async (req, res) => {
         res.status(500).json({
             status: 'error',
             message: 'Unable to cancel reservation'
+        });
+    }
+});
+
+app.post('/api/additional-charges', async (req, res) => {
+    try {
+        const { reservation_id, charge_type, amount, description } = req.body;
+
+        const reservationId = Number(reservation_id);
+        const chargeAmount = Number(amount);
+
+        if (!Number.isInteger(reservationId) || reservationId <= 0) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Valid reservation ID is required'
+            });
+        }
+
+        if (!charge_type || !charge_type.trim()) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Charge type is required'
+            });
+        }
+
+        if (charge_type.trim().length > 50) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Charge type cannot exceed 50 characters'
+            });
+        }
+
+        if (amount === undefined || amount === null || amount === '' ||
+            !Number.isFinite(chargeAmount) || chargeAmount < 0) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Enter a valid non-negative charge amount'
+            });
+        }
+
+        if (description && description.length > 200) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Description cannot exceed 200 characters'
+            });
+        }
+
+        const [reservations] = await db.execute(
+            'SELECT reservation_id FROM Reservation WHERE reservation_id = ?',
+            [reservationId]
+        );
+
+        if (reservations.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Reservation not found'
+            });
+        }
+
+        const [result] = await db.execute(
+            `INSERT INTO additional_charge
+             (reservation_id, charge_type, amount, description)
+             VALUES (?, ?, ?, ?)`,
+            [
+                reservationId,
+                charge_type.trim(),
+                chargeAmount,
+                description?.trim() || null
+            ]
+        );
+
+        res.status(201).json({
+            status: 'success',
+            message: 'Additional charge saved successfully',
+            charge_id: result.insertId,
+            reservation_id: reservationId,
+            charge_type: charge_type.trim(),
+            amount: chargeAmount,
+            description: description?.trim() || null
+        });
+
+    } catch (error) {
+        console.error('Add charge error:', error.message);
+
+        res.status(500).json({
+            status: 'error',
+            message: 'Unable to save additional charge'
+        });
+    }
+});
+
+
+app.get('/api/additional-charges/:reservationId', async (req, res) => {
+    try {
+        const reservationId = Number(req.params.reservationId);
+
+        if (!Number.isInteger(reservationId) || reservationId <= 0) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid reservation ID'
+            });
+        }
+
+        const [reservations] = await db.execute(
+            'SELECT reservation_id FROM Reservation WHERE reservation_id = ?',
+            [reservationId]
+        );
+
+        if (reservations.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Reservation not found'
+            });
+        }
+
+        const [charges] = await db.execute(
+            `SELECT charge_id, reservation_id, charge_type,
+                    amount, description
+             FROM additional_charge
+             WHERE reservation_id = ?
+             ORDER BY charge_id DESC`,
+            [reservationId]
+        );
+
+        const total = charges.reduce(
+            (sum, charge) => sum + Number(charge.amount),
+            0
+        );
+
+        res.json({
+            status: 'success',
+            reservation_id: reservationId,
+            charges,
+            total_additional_charges: Number(total.toFixed(2))
+        });
+
+    } catch (error) {
+        console.error('Get charges error:', error.message);
+
+        res.status(500).json({
+            status: 'error',
+            message: 'Unable to retrieve additional charges'
         });
     }
 });

@@ -560,44 +560,81 @@
                     </div>
                 </form>
                 
-                <section id="reservationReceipt" class="receipt" hidden>
-                    <div class="receipt-header">
-                        <h2>HOTEL ROYAL</h2>
-                        <p>Reservation Confirmation Receipt</p>
-                        <span id="receiptBookingStatus">Booked</span>
-                    </div>
+                
+<section id="reservationReceipt" class="receipt" hidden>
+    <div class="receipt-header">
+        <h2>HOTEL ROYAL</h2>
+        <p>Reservation Confirmation Receipt</p>
+        <span id="receiptBookingStatus">Booked</span>
+    </div>
 
-                    <hr>
+    <hr>
 
-                    <h3>Reservation Details</h3>
-                    <p>Reservation ID: <strong id="receiptReservationId">-</strong></p>
-                    <p>Reservation Status: <strong id="receiptReservationStatus">Booked</strong></p>
+    <h3>Reservation Details</h3>
+    <p>Reservation ID: <strong id="receiptReservationId">-</strong></p>
+    <p>Reservation Status: <strong id="receiptReservationStatus">Booked</strong></p>
 
-                    <h3>Customer Details</h3>
-                    <p>Customer ID: <strong id="receiptCustomerId">-</strong></p>
-                    <p>Customer Name: <strong id="receiptCustomerName">-</strong></p>
+    <h3>Customer Details</h3>
+    <p>Customer ID: <strong id="receiptCustomerId">-</strong></p>
+    <p>Customer Name: <strong id="receiptCustomerName">-</strong></p>
 
-                    <h3>Room and Stay Details</h3>
-                    <p>Room ID: <strong id="receiptRoomId">-</strong></p>
-                    <p>Room Number: <strong id="receiptRoomNumber">-</strong></p>
-                    <p>Room Type: <strong id="receiptRoomType">-</strong></p>
-                    <p>Check-in: <strong id="receiptCheckIn">-</strong></p>
-                    <p>Check-out: <strong id="receiptCheckOut">-</strong></p>
-                    <p>Nights: <strong id="receiptNights">-</strong></p>
-                    <p>Rate per Night: <strong id="receiptRate">-</strong></p>
-                    <p>Total Booking Cost: <strong id="receiptTotal">-</strong></p>
+    <h3>Room and Stay Details</h3>
+    <p>Room ID: <strong id="receiptRoomId">-</strong></p>
+    <p>Room Number: <strong id="receiptRoomNumber">-</strong></p>
+    <p>Room Type: <strong id="receiptRoomType">-</strong></p>
+    <p>Check-in: <strong id="receiptCheckIn">-</strong></p>
+    <p>Check-out: <strong id="receiptCheckOut">-</strong></p>
+    <p>Nights: <strong id="receiptNights">-</strong></p>
+    <p>Rate per Night: <strong id="receiptRate">-</strong></p>
+    <p>Room Booking Cost: <strong id="receiptTotal">-</strong></p>
 
-                    <h3>Payment Details</h3>
-                    <p>Payment ID: <strong id="receiptPaymentId">Not recorded</strong></p>
-                    <p>Payment Method: <strong id="receiptPaymentMethod">Not recorded</strong></p>
-                    <p>Amount Paid: <strong id="receiptAmountPaid">₹0.00</strong></p>
-                    <p>Payment Status: <strong id="receiptPaymentStatus">Not recorded</strong></p>
+    <hr>
 
-                    <button type="button" id="printReceiptButton">
-                        Print Receipt
-                    </button>
-                </section>
-            </section>
+    <h3>Additional Charges</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Charge Type</th>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody id="receiptAdditionalChargesList">
+            <tr>
+                <td colspan="3">No additional charges</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>Additional Charges Total:
+        <strong id="receiptAdditionalChargesTotal">₹0.00</strong>
+    </p>
+
+    <hr>
+
+    <h3>Bill Summary</h3>
+    <p>Room Booking Cost:
+        <strong id="receiptRoomCostSummary">₹0.00</strong>
+    </p>
+    <p>Additional Charges:
+        <strong id="receiptAdditionalChargesSummary">₹0.00</strong>
+    </p>
+    <p><strong>Total Bill:
+        <span id="receiptGrandTotal">₹0.00</span>
+    </strong></p>
+
+    <h3>Payment Details</h3>
+    <p>Payment ID: <strong id="receiptPaymentId">Not recorded</strong></p>
+    <p>Payment Method: <strong id="receiptPaymentMethod">Not recorded</strong></p>
+    <p>Amount Paid: <strong id="receiptAmountPaid">₹0.00</strong></p>
+    <p>Payment Status: <strong id="receiptPaymentStatus">Not recorded</strong></p>
+    <p>Balance Due: <strong id="receiptBalanceDue">₹0.00</strong></p>
+
+    <button type="button" id="printReceiptButton">
+        Print Receipt
+    </button>
+</section>
+</section>
 
             <section class="summary-cards" aria-label="Hotel summary">
                 <article class="summary-card">
@@ -737,6 +774,125 @@
 
                 </div>
             </section>
+            
+<!-- Additional Charges and Checkout -->
+<section class="panel" id="additional-charges">
+    <div class="panel-heading">
+        <div class="heading-title">
+            <span class="heading-icon">₹</span>
+            <div>
+                <h2>Additional Charges &amp; Checkout</h2>
+                <p class="muted">
+                    Add extra fees and view the charges for a reservation
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <form id="additionalChargeForm">
+        <div class="booking-form">
+            <div class="booking-field">
+                <label for="chargeReservationId">Reservation ID *</label>
+                <input
+                    type="number"
+                    id="chargeReservationId"
+                    min="1"
+                    required
+                    placeholder="Enter reservation ID"
+                >
+            </div>
+
+            <div class="booking-field">
+                <label for="chargeType">Charge Type *</label>
+                <select id="chargeType" required>
+                    <option value="">Select charge type</option>
+                    <option value="Late Checkout">Late Checkout</option>
+                    <option value="Extra Service">Extra Service</option>
+                    <option value="Room Service">Room Service</option>
+                    <option value="Damage Charge">Damage Charge</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="booking-field">
+                <label for="chargeAmount">Amount (₹) *</label>
+                <input
+                    type="number"
+                    id="chargeAmount"
+                    min="0"
+                    max="99999999.99"
+                    step="0.01"
+                    required
+                    placeholder="Enter amount"
+                >
+            </div>
+
+            <div class="booking-field">
+                <label for="chargeDescription">Description</label>
+                <input
+                    type="text"
+                    id="chargeDescription"
+                    maxlength="200"
+                    placeholder="Optional details"
+                >
+            </div>
+        </div>
+
+        <div class="booking-bottom">
+            <p id="additionalChargeMessage" role="status" aria-live="polite">
+                Enter a reservation ID to view its charges.
+            </p>
+
+            <button type="submit" id="saveAdditionalChargeButton">
+                Save Additional Charge
+            </button>
+        </div>
+    </form>
+
+    <div style="margin-top: 28px;">
+        <div class="panel-heading">
+            <div class="heading-title">
+                <div>
+                    <h3>Saved Charges</h3>
+                    <p class="muted">
+                        Charges recorded against the selected reservation
+                    </p>
+                </div>
+            </div>
+
+            <button type="button" id="loadAdditionalChargesButton">
+                View Charges
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Charge ID</th>
+                        <th>Charge Type</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="additionalChargesList">
+                    <tr>
+                        <td colspan="4">
+                            Enter a reservation ID and select View Charges.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="booking-total"
+             id="additionalChargesTotal"
+             style="display: block; margin-top: 16px;">
+            <span>Total Additional Charges</span>
+            <strong id="additionalChargesTotalAmount">₹0.00</strong>
+        </div>
+    </div>
+</section>
 
             <p id="errorMessage" role="alert"></p>
 
@@ -1596,12 +1752,13 @@ async function loadCustomerHistory() {
                     : '-',
                 formatDate(item.check_in_date),
                 formatDate(item.check_out_date),
-                item.booked_rate == null
-                    ? '-'
-                    : `₹${Number(item.booked_rate).toLocaleString('en-IN')}`,
-                item.payment_amount == null
-                    ? '-'
-                    : `₹${Number(item.payment_amount).toLocaleString('en-IN')}`,
+                
+`Room: ₹${Number(item.room_booking_cost || 0).toLocaleString('en-IN')}\n` +
+`Extra charges: ₹${Number(item.total_additional_charges || 0).toLocaleString('en-IN')}\n` +
+`Total bill: ₹${(Number(item.room_booking_cost || 0) + Number(item.total_additional_charges || 0)).toLocaleString('en-IN')}`,
+`Paid: ₹${Number(item.total_completed_payments || 0).toLocaleString('en-IN')}\n` +
+`Balance: ₹${Number(item.balance_due || 0).toLocaleString('en-IN')}`,
+
                 item.payment_method || '-'
             ];
 
@@ -1613,26 +1770,27 @@ async function loadCustomerHistory() {
 
             const paymentCell = document.createElement('td');
 
-            if (item.payment_id) {
-                const paymentSelect = document.createElement('select');
+            
+if (item.payment_id) {
+    const paymentSelect = document.createElement('select');
 
-                ['Pending', 'Completed', 'Failed'].forEach(status => {
-                    const option = document.createElement('option');
-                    option.value = status;
-                    option.textContent = status;
-                    paymentSelect.appendChild(option);
-                });
+    ['Pending', 'Completed', 'Failed'].forEach(status => {
+        const option = document.createElement('option');
+        option.value = status;
+        option.textContent = status;
+        paymentSelect.appendChild(option);
+    });
 
-                paymentSelect.value = item.payment_status || 'Pending';
-                paymentSelect.setAttribute(
-                    'aria-label',
-                    'Payment status'
-                );
+    paymentSelect.value = item.payment_status || 'Pending';
+    paymentSelect.setAttribute(
+        'aria-label',
+        'Payment status'
+    );
 
-                paymentCell.appendChild(paymentSelect);
-            } else {
-                paymentCell.textContent = 'No payment';
-            }
+    paymentCell.appendChild(paymentSelect);
+} else {
+    paymentCell.textContent = 'No payment';
+}
 
             row.appendChild(paymentCell);
 
@@ -1668,24 +1826,115 @@ async function loadCustomerHistory() {
                     const rate = Number(item.booked_rate || 0);
                     const total = rate * nights;
 
-                    document.getElementById('receiptBookingStatus').textContent = item.reservation_status || 'Booked';
-                    document.getElementById('receiptReservationId').textContent = item.reservation_id || '-';
-                    document.getElementById('receiptReservationStatus').textContent = item.reservation_status || 'Booked';
-                    document.getElementById('receiptCustomerId').textContent = item.customer_id || '-';
-                    document.getElementById('receiptCustomerName').textContent = item.customer_name || '-';
-                    document.getElementById('receiptRoomId').textContent = item.room_id || '-';
-                    document.getElementById('receiptRoomNumber').textContent = item.room_number || '-';
-                    document.getElementById('receiptRoomType').textContent = item.room_type || '-';
-                    document.getElementById('receiptCheckIn').textContent = item.check_in_date ? item.check_in_date.split('T')[0] : '-';
-                    document.getElementById('receiptCheckOut').textContent = item.check_out_date ? item.check_out_date.split('T')[0] : '-';
-                    document.getElementById('receiptNights').textContent = nights;
-                    document.getElementById('receiptRate').textContent = `₹${rate.toLocaleString('en-IN')}`;
-                    document.getElementById('receiptTotal').textContent = `₹${total.toLocaleString('en-IN')}`;
+                    
+document.getElementById('receiptBookingStatus').textContent = item.reservation_status || 'Booked';
+document.getElementById('receiptReservationId').textContent = item.reservation_id || '-';
+document.getElementById('receiptReservationStatus').textContent = item.reservation_status || 'Booked';
+document.getElementById('receiptCustomerId').textContent = item.customer_id || '-';
+document.getElementById('receiptCustomerName').textContent = item.customer_name || '-';
+document.getElementById('receiptRoomId').textContent = item.room_id || '-';
+document.getElementById('receiptRoomNumber').textContent = item.room_number || '-';
+document.getElementById('receiptRoomType').textContent = item.room_type || '-';
+document.getElementById('receiptCheckIn').textContent = item.check_in_date ? item.check_in_date.split('T')[0] : '-';
+document.getElementById('receiptCheckOut').textContent = item.check_out_date ? item.check_out_date.split('T')[0] : '-';
+document.getElementById('receiptNights').textContent = nights;
+document.getElementById('receiptRate').textContent = `₹${rate.toLocaleString('en-IN')}`;
+document.getElementById('receiptTotal').textContent = `₹${total.toLocaleString('en-IN')}`;
 
-                    document.getElementById('receiptPaymentId').textContent = item.payment_id;
-                    document.getElementById('receiptPaymentMethod').textContent = item.payment_method || '-';
-                    document.getElementById('receiptAmountPaid').textContent = `₹${Number(item.payment_amount || item.amount || 0).toLocaleString('en-IN')}`;
-                    document.getElementById('receiptPaymentStatus').textContent = item.payment_status || '-';
+const amountPaid = Number(item.payment_amount || item.amount || 0);
+
+document.getElementById('receiptPaymentId').textContent = item.payment_id || 'Not recorded';
+document.getElementById('receiptPaymentMethod').textContent = item.payment_method || 'Not recorded';
+document.getElementById('receiptAmountPaid').textContent =
+    `₹${amountPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+document.getElementById('receiptPaymentStatus').textContent = item.payment_status || 'Not recorded';
+
+// Show room cost in the bill summary.
+document.getElementById('receiptRoomCostSummary').textContent =
+    `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+// Load additional charges for this reservation.
+const chargesList = document.getElementById('receiptAdditionalChargesList');
+
+chargesList.replaceChildren();
+
+const emptyRow = document.createElement('tr');
+const emptyCell = document.createElement('td');
+emptyCell.colSpan = 3;
+emptyCell.textContent = 'Loading additional charges...';
+emptyRow.appendChild(emptyCell);
+chargesList.appendChild(emptyRow);
+
+fetch(`/api/additional-charges/${item.reservation_id}`)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Could not load additional charges.');
+        }
+        return response.json();
+    })
+    .then(data => {
+        chargesList.replaceChildren();
+
+        const charges = data.charges || [];
+        const money = value =>
+            `₹${Number(value || 0).toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+
+        let additionalTotal = 0;
+
+        if (charges.length === 0) {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.colSpan = 3;
+            cell.textContent = 'No additional charges';
+            row.appendChild(cell);
+            chargesList.appendChild(row);
+        } else {
+            charges.forEach(charge => {
+                const row = document.createElement('tr');
+
+                const typeCell = document.createElement('td');
+                typeCell.textContent = charge.charge_type || '-';
+
+                const descriptionCell = document.createElement('td');
+                descriptionCell.textContent = charge.description || '-';
+
+                const amountCell = document.createElement('td');
+                amountCell.textContent = money(charge.amount);
+
+                row.append(typeCell, descriptionCell, amountCell);
+                chargesList.appendChild(row);
+
+                additionalTotal += Number(charge.amount || 0);
+            });
+        }
+
+        const grandTotal = Number(total) + additionalTotal;
+        const balanceDue = Math.max(0, grandTotal - amountPaid);
+
+        document.getElementById('receiptAdditionalChargesTotal').textContent =
+            money(additionalTotal);
+        document.getElementById('receiptAdditionalChargesSummary').textContent =
+            money(additionalTotal);
+        document.getElementById('receiptGrandTotal').textContent =
+            money(grandTotal);
+        document.getElementById('receiptBalanceDue').textContent =
+            money(balanceDue);
+    })
+    .catch(error => {
+        console.error('Error loading receipt charges:', error);
+
+        chargesList.replaceChildren();
+
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 3;
+        cell.textContent = 'Unable to load additional charges. Please try again.';
+        row.appendChild(cell);
+        chargesList.appendChild(row);
+    });
 
                     const receiptSection = document.getElementById('reservationReceipt');
                     if (receiptSection) {
@@ -1708,7 +1957,12 @@ async function loadCustomerHistory() {
                 );
 
                 actionsCell.appendChild(updateButton);            
-            } else if (item.reservation_id) {
+            }
+
+if (
+    item.reservation_id &&
+    Number(item.balance_due || 0) > 0
+) {
                 const recordPaymentButton = document.createElement('button');
                 recordPaymentButton.type = 'button';
                 recordPaymentButton.textContent = 'Record Payment';
@@ -1730,14 +1984,12 @@ async function loadCustomerHistory() {
                         )) / (1000 * 60 * 60 * 24)
                     );
 
-                    const rate = Number(item.booked_rate);
-                    const suggestedAmount = rate * nights;
-
+                    const rate = Number(item.booked_rate || 0);
+const suggestedAmount = Number(item.balance_due || 0);
                     if (
-                        !Number.isFinite(suggestedAmount) ||
-                        nights <= 0 ||
-                        rate <= 0
-                    ) {
+    !Number.isFinite(suggestedAmount) ||
+    suggestedAmount <= 0
+) {
                         alert('Unable to calculate the booking cost. Please check the booking details.');
                         return;
                     }
@@ -1745,8 +1997,8 @@ async function loadCustomerHistory() {
                     const amountInput = prompt(
                         `Reservation ID: ${item.reservation_id}\n` +
                         `Stay: ${nights} night(s)\n` +
-                        `Nightly rate: ₹${rate.toLocaleString('en-IN')}\n` +
-                        `Suggested booking cost: ₹${suggestedAmount.toLocaleString('en-IN')}\n\n` +
+                        `Additional charges: ₹${Number(item.total_additional_charges || 0).toLocaleString('en-IN')}\n` +
+`Total outstanding balance: ₹${suggestedAmount.toLocaleString('en-IN')}\n\n` +
                         'Enter payment amount:',
                         suggestedAmount.toFixed(2)
                     );
@@ -2182,6 +2434,178 @@ document.getElementById('printReceiptButton')
         window.print();
     });
 
+
+async function loadAdditionalCharges() {
+    const reservationId = document
+        .getElementById('chargeReservationId').value.trim();
+
+    const tbody = document.getElementById('additionalChargesList');
+    const totalElement = document.getElementById(
+        'additionalChargesTotalAmount'
+    );
+    const message = document.getElementById(
+        'additionalChargeMessage'
+    );
+
+    if (!reservationId) {
+        message.textContent = 'Please enter a reservation ID.';
+        tbody.innerHTML =
+            '<tr><td colspan="4">Enter a reservation ID first.</td></tr>';
+        totalElement.textContent = '₹0.00';
+        return;
+    }
+
+    try {
+        message.textContent = 'Loading charges...';
+
+        const response = await fetch(
+            `/api/additional-charges/${encodeURIComponent(reservationId)}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(data.message || 'Unable to load charges.');
+        }
+
+        tbody.replaceChildren();
+
+        if (data.charges.length === 0) {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+
+            cell.colSpan = 4;
+            cell.textContent = 'No additional charges for this reservation.';
+            row.appendChild(cell);
+            tbody.appendChild(row);
+        } else {
+            data.charges.forEach(charge => {
+                const row = document.createElement('tr');
+
+                [
+                    charge.charge_id,
+                    charge.charge_type,
+                    `₹${Number(charge.amount).toFixed(2)}`,
+                    charge.description || '-'
+                ].forEach(value => {
+                    const cell = document.createElement('td');
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+            });
+        }
+
+        totalElement.textContent =
+            `₹${Number(data.total_additional_charges).toFixed(2)}`;
+
+        message.textContent = 'Charges loaded successfully.';
+
+    } catch (error) {
+        message.textContent = error.message;
+        tbody.replaceChildren();
+
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+
+        cell.colSpan = 4;
+        cell.textContent = error.message;
+        row.appendChild(cell);
+        tbody.appendChild(row);
+
+        totalElement.textContent = '₹0.00';
+    }
+}
+
+
+document.getElementById('additionalChargeForm')
+    .addEventListener('submit', async event => {
+        event.preventDefault();
+
+        const reservationId = document
+            .getElementById('chargeReservationId').value.trim();
+
+        const chargeType = document
+            .getElementById('chargeType').value;
+
+        const amountInput = document
+            .getElementById('chargeAmount').value;
+
+        const description = document
+            .getElementById('chargeDescription').value.trim();
+
+        const amount = Number(amountInput);
+        const message = document.getElementById(
+            'additionalChargeMessage'
+        );
+        const saveButton = document.getElementById(
+            'saveAdditionalChargeButton'
+        );
+
+        if (
+            !reservationId ||
+            !Number.isInteger(Number(reservationId)) ||
+            Number(reservationId) <= 0 ||
+            !chargeType ||
+            amountInput === '' ||
+            !Number.isFinite(amount) ||
+            amount < 0
+        ) {
+            message.textContent = 'Please enter valid charge details.';
+            return;
+        }
+
+        saveButton.disabled = true;
+        saveButton.textContent = 'Saving...';
+
+        try {
+            const response = await fetch('/api/additional-charges', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    reservation_id: Number(reservationId),
+                    charge_type: chargeType,
+                    amount,
+                    description
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || data.status !== 'success') {
+                throw new Error(
+                    data.message || 'Unable to save additional charge.'
+                );
+            }
+
+            message.textContent = 'Additional charge saved successfully.';
+
+            document.getElementById('chargeType').value = '';
+            document.getElementById('chargeAmount').value = '';
+            document.getElementById('chargeDescription').value = '';
+
+            await loadAdditionalCharges();
+
+        } catch (error) {
+            message.textContent = error.message;
+        } finally {
+            saveButton.disabled = false;
+            saveButton.textContent = 'Save Additional Charge';
+        }
+    });
+
+
+document.getElementById('loadAdditionalChargesButton')
+    .addEventListener('click', loadAdditionalCharges);
+
+document.getElementById('chargeReservationId')
+    .addEventListener('change', loadAdditionalCharges);
+
+
+// Keep existing dashboard functionality.
 loadDashboard();
 loadCustomerHistory();
 </script>
